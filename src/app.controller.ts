@@ -4,7 +4,7 @@ import { Body } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { checkPhoneDto, loginRequestDto, registerRequestDto } from './Dto/Auth.dto';
 
-@Controller("auth")
+@Controller("api/auth")
 export class AppController {
   constructor(private readonly appService: AppService) {}
 

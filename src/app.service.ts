@@ -5,12 +5,14 @@ import { HttpException } from '@nestjs/common';
 import { HttpStatus } from '@nestjs/common';
 import { userDocument } from './schema/user.schema';
 import { checkPhoneDto, loginRequestDto, registerRequestDto } from './Dto/Auth.dto';
-import { User } from './models/User.model';
+import { User, userType } from './models/User.model';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AppService {
   constructor(
-    @InjectModel('user') private userModel: Model<userDocument>
+    @InjectModel('user') private userModel: Model<userDocument>,
+    private jwtService: JwtService
   ){}
 
   async login(body: loginRequestDto) {
@@ -23,12 +25,18 @@ export class AppService {
 
     if (user.password !== password) throw new HttpException('password incorrect', HttpStatus.FORBIDDEN);
 
-    return user
+    return {
+      token: this.jwtService.sign({ id: user._id, username: `${user.first_name} ${user.last_name}` }),
+      user_type: user.user_type,
+      username: `${user.first_name} ${user.last_name}`
+    }
   }
 
   async register(body: registerRequestDto) {
-    const user = await this.userModel.create(body)
-    return user
+    const user = await this.userModel.create({...body, user_type: userType.USER})
+    if (!user) throw new HttpException('bad request', HttpStatus.BAD_REQUEST);
+    return { status: 200, message: 'registered successfuly' }
+
   }
 
   async checkPhoneNumber(body: checkPhoneDto) {
@@ -36,7 +44,7 @@ export class AppService {
       if (user) {
         throw new HttpException('Phone number already exists', HttpStatus.NOT_ACCEPTABLE);
       }
-      return { message: 'Phone number is valid' }
+      return  { status: 200, message: 'Phone number is valid'  }
   }
 
 }
