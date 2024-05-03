@@ -19,17 +19,21 @@ export class AppService {
     const { phone_number, password } = body
 
     const user = await this.userModel.findOne({ phone_number: phone_number }) as User
-    console.log(user)
 
     if (!user) throw new HttpException('user not found', HttpStatus.NOT_FOUND);
 
     if (user.password !== password) throw new HttpException('password incorrect', HttpStatus.FORBIDDEN);
 
-    return {
-      token: this.jwtService.sign({ id: user._id, username: `${user.first_name} ${user.last_name}` }),
+    const responce = {
+      token: {
+        token: this.jwtService.sign({ id: user._id, username: `${user.first_name} ${user.last_name}` }),
+        type: 'JWT'
+      },
       user_type: user.user_type,
       username: `${user.first_name} ${user.last_name}`
     }
+    console.log(responce)
+    return responce
   }
 
   async register(body: registerRequestDto) {
